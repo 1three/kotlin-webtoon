@@ -27,6 +27,7 @@ import fastcampus.part2.webtoon.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), WebViewFragment.OnTabLayoutNameChanged {
     private lateinit var binding: ActivityMainBinding
+    private var doubleBackToExitPressedOnce = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,34 +35,31 @@ class MainActivity : AppCompatActivity(), WebViewFragment.OnTabLayoutNameChanged
         setContentView(binding.root)
 
         // Tab 이름 설정
-        val sharedPreferences = getSharedPreferences(WebViewFragment.Companion.SHARED_PREFERENCE, Context.MODE_PRIVATE)
-        val tab0 = sharedPreferences?.getString("tab0_name", "백수세끼")
-        val tab1 = sharedPreferences?.getString("tab1_name", "윈드브레이커")
-        val tab2 = sharedPreferences?.getString("tab2_name", "김부장")
+        val sharedPreferences =
+            getSharedPreferences(WebViewFragment.Companion.SHARED_PREFERENCE, Context.MODE_PRIVATE)
+        val tabNames = listOf("tab0_name", "tab1_name", "tab2_name")
+        val defaultNames = listOf("백수세끼", "윈드브레이커", "김부장")
 
-        // ViewPager2 : RecyclerView로 구성
+        // ViewPager2와 TabLayout
         binding.viewPager2.adapter = ViewPager2Adapter(this)
-
-        // TabLayout
         TabLayoutMediator(binding.tabLayout, binding.viewPager2) { tab, position ->
-            run {
-                tab.text = when(position) {
-                    0 -> tab0
-                    1 -> tab1
-                    2 -> tab2
-                    else -> sharedPreferences?.getString("tab_name", "네이버 웹툰")
-                }
-            }
+            val name = sharedPreferences.getString(tabNames[position], defaultNames[position])
+            tab.text = name
         }.attach()
     }
 
     override fun onBackPressed() {
         val currentFragment = supportFragmentManager.fragments[binding.viewPager2.currentItem]
-        if (currentFragment is WebViewFragment && currentFragment.canGoBack()) { // WebView + 뒤로가기 페이지 존재할 경우
+
+        if (currentFragment is WebViewFragment && currentFragment.canGoBack()) {
+            this.doubleBackToExitPressedOnce = false
             currentFragment.goBack()
-        } else {
-            Toast.makeText(this, "앱을 종료합니다.", Toast.LENGTH_SHORT).show()
+        } else if (doubleBackToExitPressedOnce) {
             super.onBackPressed()
+            return
+        } else {
+            this.doubleBackToExitPressedOnce = true
+            Toast.makeText(this, "뒤로가기를 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
         }
     }
 

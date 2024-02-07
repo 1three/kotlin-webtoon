@@ -15,14 +15,15 @@ class ViewPager2Adapter(private val mainActivity: MainActivity) :
     }
 
     override fun createFragment(position: Int): Fragment {
+        val urlKey = "tab$position"
         val defaultUrls = listOf(
             "https://m.comic.naver.com/webtoon/detail?titleId=733074&no=1&week=mon&listSortOrder=DESC",
             "https://m.comic.naver.com/webtoon/detail?titleId=602910&no=1&week=mon&listSortOrder=DESC",
             "https://m.comic.naver.com/webtoon/detail?titleId=783053&no=1&week=tue&listSortOrder=DESC",
         )
-        val url = sharedPreferences.getString("tab$position", defaultUrls[position])
+        val url = sharedPreferences.getString(urlKey, defaultUrls[position])
 
-        return WebViewFragment(position, url ?: defaultUrls[position]).apply {
+        return WebViewFragment(position, url!!).apply {
             listener = mainActivity
         }
     }
