@@ -39,7 +39,7 @@ class WebViewFragment(private val position: Int, private val webViewUrl: String)
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View { // 실제로 그려질 View
+    ): View {
         binding = FragmentWebViewBinding.inflate(inflater)
         return binding.root
     }
@@ -52,12 +52,15 @@ class WebViewFragment(private val position: Int, private val webViewUrl: String)
         binding.webView.webViewClient = WebtoonWebViewClient(binding.progressBar) { url ->
             activity?.getSharedPreferences(SHARED_PREFERENCE, Context.MODE_PRIVATE)?.edit {
                 putString("tab$position", url)
-                commit() // commit : 동기(바로) 처리, apply: 비동기 처리
+                apply()
             }
         }
         binding.webView.settings.javaScriptEnabled = true
         binding.webView.loadUrl(webViewUrl)
+        setupUI()
+    }
 
+    private fun setupUI() {
         binding.backToLastPointButton.setOnClickListener {
             val sharedPreference =
                 activity?.getSharedPreferences(SHARED_PREFERENCE, Context.MODE_PRIVATE)
@@ -78,7 +81,10 @@ class WebViewFragment(private val position: Int, private val webViewUrl: String)
                 setPositiveButton("변경하기") { _, _ ->
                     activity?.getSharedPreferences(SHARED_PREFERENCE, Context.MODE_PRIVATE)?.edit {
                         putString("tab${position}_name", editText.text.toString())
-                        listener?.nameChanged(position, editText.text.toString()) // 탭 이름 변경 Listener
+                        listener?.nameChanged(
+                            position,
+                            editText.text.toString()
+                        ) // 탭 이름 변경 Listener
                     }
                 }
                 setNegativeButton("취소하기") { dialogInterface, _ ->
@@ -88,13 +94,10 @@ class WebViewFragment(private val position: Int, private val webViewUrl: String)
         }
     }
 
-    fun canGoBack(): Boolean {
-        return binding.webView.canGoBack()
-    }
+    fun canGoBack(): Boolean = binding.webView.canGoBack()
 
-    fun goBack() {
-        binding.webView.goBack()
-    }
+    fun goBack() = binding.webView.goBack()
+
 
     interface OnTabLayoutNameChanged {
         fun nameChanged(position: Int, name: String)
